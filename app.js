@@ -227,7 +227,7 @@ function updateBackendBadge(data) {
                 align-items: center;
                 gap: 6px;
                 padding: 8px 16px;
-                background: rgba(10, 11, 15, 0.9);
+                background: rgba(255, 255, 255, 0.92);
                 border: 1px solid var(--border-subtle);
                 border-radius: 20px;
                 font-size: 0.72rem;
@@ -236,13 +236,14 @@ function updateBackendBadge(data) {
                 z-index: 9999;
                 backdrop-filter: blur(20px);
                 font-family: var(--font-mono);
+                box-shadow: 0 2px 12px rgba(45, 35, 25, 0.08);
             }
             .badge-live {
-                color: #00E68A;
+                color: #5B9A6F;
                 font-weight: 700;
             }
             .badge-demo {
-                color: #FF9F43;
+                color: #D4883A;
                 font-weight: 700;
             }
         `;
@@ -280,7 +281,7 @@ function initParticles() {
             this.size = Math.random() * 1.5 + 0.5;
             this.speedX = (Math.random() - 0.5) * 0.3;
             this.speedY = (Math.random() - 0.5) * 0.3;
-            this.opacity = Math.random() * 0.3 + 0.05;
+            this.color = `rgba(176, 125, 79, ${Math.random() * 0.12 + 0.03})`;
         }
         update() {
             this.x += this.speedX;
@@ -291,7 +292,7 @@ function initParticles() {
         draw() {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0, 240, 255, ${this.opacity})`;
+            ctx.fillStyle = this.color;
             ctx.fill();
         }
     }
@@ -311,7 +312,7 @@ function initParticles() {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(0, 240, 255, ${0.04 * (1 - dist / 120)})`;
+                    ctx.strokeStyle = `rgba(176, 125, 79, ${0.06 * (1 - dist / 120)})`;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
@@ -489,44 +490,46 @@ function showToast(message, type = 'info') {
         style.textContent = `
             .toast {
                 position: fixed;
-                top: 80px;
+                top: 76px;
                 right: 20px;
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 padding: 12px 20px;
-                border-radius: 10px;
-                font-size: 0.85rem;
+                border-radius: 12px;
+                font-size: 0.82rem;
                 font-family: var(--font-sans);
+                font-weight: 500;
                 z-index: 9999;
-                animation: toastIn 0.4s ease, toastOut 0.4s ease 2.5s forwards;
+                animation: toastIn 0.35s ease, toastOut 0.35s ease 2.5s forwards;
                 backdrop-filter: blur(20px);
+                box-shadow: 0 4px 20px rgba(45, 35, 25, 0.10);
             }
             .toast-success {
-                background: rgba(0, 230, 138, 0.12);
-                border: 1px solid rgba(0, 230, 138, 0.2);
-                color: #00E68A;
+                background: rgba(91, 154, 111, 0.12);
+                border: 1px solid rgba(91, 154, 111, 0.20);
+                color: #5B9A6F;
             }
             .toast-error {
-                background: rgba(255, 77, 77, 0.12);
-                border: 1px solid rgba(255, 77, 77, 0.2);
-                color: #FF4D4D;
+                background: rgba(198, 107, 94, 0.12);
+                border: 1px solid rgba(198, 107, 94, 0.20);
+                color: #C66B5E;
             }
             .toast-info {
-                background: rgba(0, 240, 255, 0.12);
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                color: #00F0FF;
+                background: rgba(176, 125, 79, 0.12);
+                border: 1px solid rgba(176, 125, 79, 0.20);
+                color: #B07D4F;
             }
             .toast-icon {
                 font-weight: 700;
             }
             @keyframes toastIn {
-                from { opacity: 0; transform: translateX(20px); }
-                to { opacity: 1; transform: translateX(0); }
+                from { opacity: 0; transform: translateY(-8px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             @keyframes toastOut {
-                from { opacity: 1; transform: translateX(0); }
-                to { opacity: 0; transform: translateX(20px); }
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-8px); }
             }
         `;
         document.head.appendChild(style);
@@ -773,7 +776,7 @@ function addMessage(role, content, meta = null) {
     let rendered = content
         .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.*?)`/g, '<code style="background:rgba(0,240,255,0.08);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.8em;">$1</code>')
+        .replace(/`(.*?)`/g, '<code style="background:rgba(176,125,79,0.08);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.8em;">$1</code>')
         .replace(/\n/g, '<br>');
     
     div.innerHTML = `
@@ -914,7 +917,7 @@ function initCodeTabs() {
             const codeBlock = btn.closest('.code-block').querySelector('code');
             navigator.clipboard.writeText(codeBlock.textContent).then(() => {
                 btn.textContent = 'Copied!';
-                btn.style.color = '#00E68A';
+                btn.style.color = '#5B9A6F';
                 setTimeout(() => {
                     btn.textContent = 'Copy';
                     btn.style.color = '';
