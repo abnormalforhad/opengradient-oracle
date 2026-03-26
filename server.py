@@ -231,6 +231,19 @@ A Trusted Execution Environment (TEE) is a hardware-isolated processor region th
 }
 
 def get_demo_response(prompt: str) -> str:
+    global sdk_error
+    
+    if PRIVATE_KEY and PRIVATE_KEY != "0xYourPrivateKeyHere" and not sdk_ready:
+        return f"""⚠️ **OpenGradient SDK failed to initialize on the backend.**
+        
+**Error details:** `{sdk_error}`
+
+This usually happens on Vercel due to missing system dependencies for Web3 cryptography, or an invalid private key format. 
+
+Please ensure your Vercel Environment Variable `OG_PRIVATE_KEY` does not have quotes around it and is exactly a 64-character hex string starting with `0x`.
+
+*(Backend is falling back to Demo Mode until this is resolved).*"""
+
     lower = prompt.lower()
     if any(w in lower for w in ["defi", "trend", "landscape", "market"]):
         return DEMO_RESPONSES["defi"]
@@ -241,21 +254,17 @@ def get_demo_response(prompt: str) -> str:
     if any(w in lower for w in ["tee", "trusted", "verification", "enclave"]):
         return DEMO_RESPONSES["tee"]
     
-    return f"""Thank you for your query. Here's my analysis:
+    return f"""Thank you for your query. 
 
-Your prompt has been processed through OpenGradient's verifiable inference pipeline. In production mode (with OG_PRIVATE_KEY configured), this response would be:
+Your prompt was processed securely. However, the backend `OG_PRIVATE_KEY` is not set on Vercel.
 
-✅ **Executed inside a TEE** (Trusted Execution Environment)
-✅ **Cryptographically attested** with hardware-backed proof
-✅ **Payment settled on-chain** via x402 on Base Sepolia
-✅ **Routed through** your selected model ({prompt[:50]}...)
+To make this DApp real-time for everyone:
+1. Go to your Vercel Project Settings > Environment Variables.
+2. Add `OG_PRIVATE_KEY`.
+3. Paste your real private key.
+4. Redeploy.
 
-To enable real verified inference:
-1. Get OPG tokens from https://faucet.opengradient.ai
-2. Set your wallet key in `.env`
-3. Restart the server
-
-*Running in demo mode — set OG_PRIVATE_KEY for real TEE inference.*"""
+*Running in demo mode.*"""
 
 def generate_demo_hash() -> str:
     import random
