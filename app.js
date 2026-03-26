@@ -400,10 +400,10 @@ function updateStatusBadge(isLive) {
     
     if (isLive) {
         badge.classList.remove('demo');
-        label.textContent = '● Live · Base Sepolia';
+        label.textContent = 'Live · Base Sepolia';
     } else {
         badge.classList.add('demo');
-        label.textContent = '● Demo Mode';
+        label.textContent = 'Demo Mode';
     }
 }
 

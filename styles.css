@@ -238,7 +238,7 @@ body {
     opacity: 0.85;
 }
 
-.brand-icon svg {
+.brand-icon svg, .brand-icon img {
     display: block;
 }
 
