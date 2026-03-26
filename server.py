@@ -356,8 +356,21 @@ async def run_inference(req: InferenceRequest):
             
         except Exception as e:
             print(f"⚠️  SDK inference failed: {e}")
-            print("   Falling back to demo mode for this request")
-            # Fall through to demo mode
+            error_msg = str(e)
+            latency = int((time.time() - start_time) * 1000)
+            record = InferenceResponse(
+                content=f"⚠️ **OpenGradient Live Execution Failed:**\n\n```\n{error_msg}\n```\n\n*This means your backend booted perfectly with the Private Key, but the blockchain rejected the transaction. Did you visit https://faucet.opengradient.ai and get testnet tokens for this specific wallet?*",
+                model=req.model,
+                provider=provider,
+                payment_hash="FAILED",
+                tee_verified=False,
+                settlement_mode=req.settlement,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                latency_ms=latency,
+                demo_mode=True,
+            )
+            inference_history.append(record.model_dump())
+            return record
     
     # ═══════════════════════════════════════════
     # DEMO MODE — Simulated Response
