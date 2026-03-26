@@ -391,24 +391,85 @@ function initNavigation() {
 
 // ── Wallet Connection ───────────────────────
 function initWallet() {
-    $('#connectWallet').addEventListener('click', () => {
+    $('#connectWallet').addEventListener('click', async () => {
         if (state.connected) {
+            // Disconnect logic (MetaMask doesn't technically allow web disconnecting, but we clear state)
             state.connected = false;
             state.walletAddress = null;
             $('#walletLabel').textContent = 'Connect Wallet';
             $('#connectWallet').classList.remove('connected');
+            showToast('Wallet disconnected', 'info');
             return;
         }
 
-        // Simulate wallet connection
-        state.connected = true;
-        state.walletAddress = generateWalletAddress();
-        const short = state.walletAddress.slice(0, 6) + '...' + state.walletAddress.slice(-4);
-        $('#walletLabel').textContent = short;
-        $('#connectWallet').classList.add('connected');
-        
-        // Flash notification
-        showToast('Wallet connected on Base Sepolia', 'success');
+        // Real Web3 Wallet Connection
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                // Request account access
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const address = accounts[0];
+                
+                // Switch to Base Sepolia Network (Chain ID: 84532 -> 0x14a34)
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x14a34' }],
+                    });
+                } catch (switchError) {
+                    // This error code indicates that the chain has not been added to MetaMask.
+                    if (switchError.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x14a34',
+                                    chainName: 'Base Sepolia',
+                                    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                    rpcUrls: ['https://sepolia.base.org'],
+                                    blockExplorerUrls: ['https://sepolia.basescan.org/']
+                                }],
+                            });
+                        } catch (addError) {
+                            showToast('Failed to add Base Sepolia network', 'error');
+                            return;
+                        }
+                    } else {
+                        showToast('Failed to switch to Base Sepolia', 'error');
+                        return;
+                    }
+                }
+
+                state.connected = true;
+                state.walletAddress = address;
+                const short = address.slice(0, 6) + '...' + address.slice(-4);
+                $('#walletLabel').textContent = short;
+                $('#connectWallet').classList.add('connected');
+                
+                showToast(`Connected: ${short}`, 'success');
+                
+                // Listen for account changes
+                window.ethereum.on('accountsChanged', (newAccounts) => {
+                    if (newAccounts.length === 0) {
+                        state.connected = false;
+                        state.walletAddress = null;
+                        $('#walletLabel').textContent = 'Connect Wallet';
+                        $('#connectWallet').classList.remove('connected');
+                        showToast('Wallet disconnected', 'info');
+                    } else {
+                        state.walletAddress = newAccounts[0];
+                        $('#walletLabel').textContent = newAccounts[0].slice(0, 6) + '...' + newAccounts[0].slice(-4);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Wallet connection failed:', error);
+                showToast(error.message || 'Connection request rejected', 'error');
+            }
+        } else {
+            // Fallback for users without MetaMask
+            showToast('No Web3 wallet detected. Please install MetaMask!', 'error');
+            window.open('https://metamask.io/download/', '_blank');
+        }
     });
 }
 

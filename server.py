@@ -29,17 +29,21 @@ import opengradient as og
 PRIVATE_KEY = os.environ.get("OG_PRIVATE_KEY")
 llm_client = None
 sdk_ready = False
+sdk_error = None
 
 if PRIVATE_KEY and PRIVATE_KEY != "0xYourPrivateKeyHere":
     try:
+        # Initialize client but DO NOT call ensure_opg_approval() during global init
+        # because on-chain RPC calls will timeout a Vercel Serverless Function cold start
         llm_client = og.LLM(private_key=PRIVATE_KEY)
-        llm_client.ensure_opg_approval(opg_amount=5.0)
         sdk_ready = True
         print("✅ OpenGradient SDK initialized — real verified inference active")
     except Exception as e:
+        sdk_error = str(e)
         print(f"⚠️  SDK init failed: {e}")
         print("   Running in demo mode (simulated responses)")
 else:
+    sdk_error = "No OG_PRIVATE_KEY configured in environment."
     print("ℹ️  No OG_PRIVATE_KEY set. Running in demo mode.")
     print("   Set your key in .env to enable real verified inference.")
 
@@ -269,6 +273,7 @@ async def get_status():
         "network": "Base Sepolia",
         "total_inferences": len(inference_history),
         "models_available": len(MODEL_MAP),
+        "error": sdk_error,
     }
 
 @app.post("/api/inference", response_model=InferenceResponse)
