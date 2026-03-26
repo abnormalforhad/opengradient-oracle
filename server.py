@@ -257,13 +257,18 @@ Please ensure your Vercel Environment Variable `OG_PRIVATE_KEY` does not have qu
     
     return f"""Thank you for your query. 
 
-Your prompt was processed securely. However, the backend `OG_PRIVATE_KEY` is not set on Vercel.
+Your prompt was processed securely. However, the backend `OG_PRIVATE_KEY` is fundamentally missing or not reaching the Python runtime.
 
-To make this DApp real-time for everyone:
+**[Backend Debug]**
+• Environment Variable Length: `{len(PRIVATE_KEY)}` characters
+• Starts with 0x: `{PRIVATE_KEY.startswith('0x')}`
+• Raw SDK Error: `{sdk_error}`
+
+To fix this on Vercel:
 1. Go to your Vercel Project Settings > Environment Variables.
-2. Add `OG_PRIVATE_KEY`.
-3. Paste your real private key.
-4. Redeploy.
+2. Add `OG_PRIVATE_KEY` with your exact private key.
+3. Make sure to check all 3 boxes (Production, Preview, Development).
+4. **Click "Deployments" at the top of Vercel, click the 3 dots on your latest deployment, and click "Redeploy".** (Just saving the variable does not update the live site).
 
 *Running in demo mode.*"""
 
