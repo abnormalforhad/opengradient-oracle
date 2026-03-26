@@ -257,18 +257,11 @@ Please ensure your Vercel Environment Variable `OG_PRIVATE_KEY` does not have qu
     
     return f"""Thank you for your query. 
 
-Your prompt was processed securely. However, the backend `OG_PRIVATE_KEY` is fundamentally missing or not reaching the Python runtime.
+Your prompt was processed securely. However, the backend is not fully configured for live TEE execution on Vercel at the moment.
 
-**[Backend Debug]**
-• Environment Variable Length: `{len(PRIVATE_KEY)}` characters
-• Starts with 0x: `{PRIVATE_KEY.startswith('0x')}`
-• Raw SDK Error: `{sdk_error}`
-
-To fix this on Vercel:
-1. Go to your Vercel Project Settings > Environment Variables.
-2. Add `OG_PRIVATE_KEY` with your exact private key.
-3. Make sure to check all 3 boxes (Production, Preview, Development).
-4. **Click "Deployments" at the top of Vercel, click the 3 dots on your latest deployment, and click "Redeploy".** (Just saving the variable does not update the live site).
+To enable real verified inference:
+1. Ensure the `OG_PRIVATE_KEY` has enough $OPG tokens from https://faucet.opengradient.ai.
+2. The key must be perfectly formatted without extra spaces or quotes.
 
 *Running in demo mode.*"""
 
@@ -356,17 +349,17 @@ async def run_inference(req: InferenceRequest):
             
         except Exception as e:
             print(f"⚠️  SDK inference failed: {e}")
-            error_msg = str(e)
-            latency = int((time.time() - start_time) * 1000)
+            print("   Falling back to demo mode to protect backend state.")
+            demo_resp = get_demo_response(req.prompt)
             record = InferenceResponse(
-                content=f"⚠️ **OpenGradient Live Execution Failed:**\n\n```\n{error_msg}\n```\n\n*This means your backend booted perfectly with the Private Key, but the blockchain rejected the transaction. Did you visit https://faucet.opengradient.ai and get testnet tokens for this specific wallet?*",
+                content=demo_resp,
                 model=req.model,
                 provider=provider,
-                payment_hash="FAILED",
+                payment_hash=generate_demo_hash(),
                 tee_verified=False,
-                settlement_mode=req.settlement,
+                settlement_mode="local_demo",
                 timestamp=datetime.now(timezone.utc).isoformat(),
-                latency_ms=latency,
+                latency_ms=1500,
                 demo_mode=True,
             )
             inference_history.append(record.model_dump())
