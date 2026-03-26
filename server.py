@@ -26,7 +26,8 @@ load_dotenv()
 import opengradient as og
 
 # ── Initialize LLM client ───────────────────
-PRIVATE_KEY = os.environ.get("OG_PRIVATE_KEY")
+raw_key = os.environ.get("OG_PRIVATE_KEY", "")
+PRIVATE_KEY = raw_key.strip(" '\"\n\r\t")
 llm_client = None
 sdk_ready = False
 sdk_error = None
